@@ -1,0 +1,37 @@
+name: Build Stratix tvOS
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: macos-26
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Select Xcode 26
+        run: |
+          sudo xcode-select -s /Applications/Xcode.app
+          xcodebuild -version
+
+      - name: Build Stratix
+        run: |
+          bash Tools/dev/run_debug_build.sh
+
+      - name: Package build
+        run: |
+          mkdir -p artifacts
+          find /tmp/stratix_debug_build/Build/Products \
+            -type d -name "*.app" \
+            -exec cp -R {} artifacts/ \;
+
+      - name: Upload Stratix app
+        uses: actions/upload-artifact@v4
+        with:
+          name: Stratix-tvOS-build
+          path: artifacts/
