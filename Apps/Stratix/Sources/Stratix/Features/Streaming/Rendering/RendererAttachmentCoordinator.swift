@@ -648,36 +648,61 @@ final class RendererAttachmentCoordinator: NSObject {
             updateAttachedRendererFamily()
         }
     }
+private func updateAttachedRendererFamily() {
+    guard let attachedTrack else { return }
 
-    private func updateAttachedRendererFamily() {
-        guard let attachedTrack else { return }
-        attachedTrack.remove(sampleBufferRenderer)
+    attachedTrack.remove(sampleBufferRenderer)
+    if let metalRenderer {
+        attachedTrack.remove(metalRenderer)
+    }
+
+    let metalCandidatePending: Bool = {
+        guard upscalingEnabled else { return false }
+
+        switch pendingRung {
+        case .metal4FXSpatial, .metalFXSpatial, .passthrough:
+            return metalRenderer != nil
+        default:
+            return false
+        }
+    }()
+
+    let metalCandidateActive: Bool = {
+        guard upscalingEnabled else { return false }
+
+        switch activeRung {
+        case .metal4FXSpatial, .metalFXSpatial:
+            return metalRenderer != nil
+        default:
+            return false
+        }
+    }()
+
+    // Keep the known-good SampleBuffer renderer attached while Metal
+    // is warming up. Only promote Metal after the coordinator marks
+    // the candidate as active.
+    if metalCandidatePending {
+        attachedTrack.add(sampleBufferRenderer)
         if let metalRenderer {
-            attachedTrack.remove(metalRenderer)
-        }
-        let wantsMetalAttachment: Bool = {
-            guard upscalingEnabled else { return false }
-            switch pendingRung ?? activeRung {
-            case .metal4FXSpatial, .metalFXSpatial, .passthrough:
-                return metalRenderer != nil
-            case .sampleBuffer, .vtSuperResolution, .vtFrameInterpolation:
-                return false
-            }
-        }()
-        if wantsMetalAttachment, let metalRenderer {
             attachedTrack.add(metalRenderer)
-        } else {
-            attachedTrack.add(sampleBufferRenderer)
         }
+    } else if metalCandidateActive, let metalRenderer {
+        attachedTrack.add(metalRenderer)
+    } else {
+        attachedTrack.add(sampleBufferRenderer)
+    }
 
-        if isFrameProbeAttached {
-            attachedTrack.remove(frameProbe)
-            isFrameProbeAttached = false
-        }
-        if shouldAttachFrameProbe {
-            attachedTrack.add(frameProbe)
-            isFrameProbeAttached = true
-        }
+    if isFrameProbeAttached {
+        attachedTrack.remove(frameProbe)
+        isFrameProbeAttached = false
+    }
+
+    if shouldAttachFrameProbe {
+        attachedTrack.add(frameProbe)
+        isFrameProbeAttached = true
     }
 }
+}
+}
+
 #endif
