@@ -11,7 +11,7 @@ import MetalFX
 import VideoRenderingKit
 
 extension MetalVideoRenderer {
-    private func notifyCandidateReadyIfNeeded(_ rung: RenderLadderRung) {
+    func notifyCandidateReadyIfNeeded(_ rung: RenderLadderRung) {
         guard lastReadyRung != rung else { return }
         lastReadyRung = rung
         lastFailedRung = nil
