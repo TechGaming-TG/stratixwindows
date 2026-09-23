@@ -137,7 +137,7 @@ public struct RenderLadderPlanner: Sendable {
             skippedRungReasons["passthrough"] = "Metal device unavailable"
         }
         if floorRung == .passthrough {
-            candidates.append(.passthrough)
+            if floorBehavior == .metalFloor && device != nil {     candidates.append(.passthrough) }
         }
 
         return makePlan(
