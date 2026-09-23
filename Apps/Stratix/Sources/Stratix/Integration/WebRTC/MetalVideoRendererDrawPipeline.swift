@@ -177,9 +177,19 @@ extension MetalVideoRenderer {
         }
         lock.unlock()
 
-        if shouldReportFirstDraw {
-            onFirstFrameDrawn?()
-        }
+        if didDraw {
+    lock.lock()
+    let renderedRung = requestedRung
+    lock.unlock()
+
+    if let renderedRung {
+        notifyCandidateReadyIfNeeded(renderedRung)
+    }
+}
+
+if shouldReportFirstDraw {
+    onFirstFrameDrawn?()
+}
         emitTelemetryIfNeeded()
 
         if shouldScheduleFollowUp {
