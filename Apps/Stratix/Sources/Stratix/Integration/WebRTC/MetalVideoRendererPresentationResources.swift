@@ -129,7 +129,6 @@ extension MetalVideoRenderer {
         self.spatialScalerOutputTexture = spatialScalerOutputTexture
         spatialScalerInputSize = MTLSize(width: sourceWidth, height: sourceHeight, depth: 1)
         spatialScalerOutputSize = MTLSize(width: targetWidth, height: targetHeight, depth: 1)
-        notifyCandidateReadyIfNeeded(requestedRung)
 #else
         mtkView.drawableSize = CGSize(width: sourceWidth, height: sourceHeight)
         processingStatus = requestedRung?.rawName ?? "idle"
